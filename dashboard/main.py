@@ -197,3 +197,25 @@ def get_patient_by_id(patient_id: int):
         )
 
     return patient
+
+@app.get("/patients/{patient_id}/appointments")
+def get_patient_appointments(patient_id: int):
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+
+    cursor.execute(
+        """
+        SELECT a.*
+        FROM appointment a
+        JOIN patient p ON a.patient_id = p.patient_id
+        WHERE p.patient_id = %s
+        """,
+        (patient_id,)
+    )
+
+    appointments = cursor.fetchall()
+
+    cursor.close()
+    db.close()
+
+    return appointments
