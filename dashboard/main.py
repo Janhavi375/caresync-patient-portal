@@ -172,3 +172,28 @@ def get_doctors():
     db.close()
 
     return {'doctors': doctors}
+
+from fastapi import HTTPException
+
+@app.get("/patients/{patient_id}")
+def get_patient_by_id(patient_id: int):
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+
+    cursor.execute(
+        "SELECT * FROM patient WHERE patient_id = %s",
+        (patient_id,)
+    )
+
+    patient = cursor.fetchone()
+
+    cursor.close()
+    db.close()
+
+    if patient is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Patient not found"
+        )
+
+    return patient
