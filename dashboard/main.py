@@ -219,3 +219,24 @@ def get_patient_appointments(patient_id: int):
     db.close()
 
     return appointments
+
+# ENDPOINT: Doctor Analytics
+@app.get("/analytics/doctors")
+def get_doctor_analytics():
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+
+    cursor.execute("""
+        SELECT
+            doctor_name,
+            total_appointments
+        FROM vw_doctor_appointment_summary
+        ORDER BY total_appointments DESC
+    """)
+
+    doctors = cursor.fetchall()
+
+    cursor.close()
+    db.close()
+
+    return doctors
