@@ -429,6 +429,99 @@
 
     }).mount('#app');  // Attach Vue to the div with id='app'
 </script>
+<div style="margin-top: 30px;">
+    <h2>Patient Search</h2>
 
+    <input
+        type="number"
+        id="patientIdInput"
+        placeholder="Enter Patient ID"
+    >
+
+    <button onclick="searchPatient()">Search</button>
+
+    <div id="patientResult" style="margin-top: 15px;"></div>
+</div>
+
+<script>
+async function searchPatient() {
+    const patientId = document.getElementById("patientIdInput").value;
+    const result = document.getElementById("patientResult");
+
+    if (!patientId) {
+        result.innerHTML = "Please enter a Patient ID";
+        return;
+    }
+
+    try {
+        const response = await fetch(
+            `http://127.0.0.1:8000/patients/${patientId}`
+        );
+
+        if (response.status === 404) {
+            result.innerHTML = "Patient not found";
+            return;
+        }
+
+        const patient = await response.json();
+
+        result.innerHTML = `
+            <p><strong>Name:</strong> ${patient.full_name}</p>
+            <p><strong>Blood Group:</strong> ${patient.blood_group}</p>
+            <p><strong>Email:</strong> ${patient.email}</p>
+        `;
+    } catch (error) {
+        result.innerHTML = "Unable to fetch patient details";
+    }
+}
+</script>
+
+<div style="margin-top: 30px;">
+    <h2>Doctor Summary</h2>
+    <canvas id="doctorChart"></canvas>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+async function loadDoctorSummary() {
+    try {
+        const response = await fetch(
+            "http://127.0.0.1:8000/analytics/doctors"
+        );
+
+        const doctors = await response.json();
+
+        const doctorNames = doctors.map(doctor => doctor.doctor_name);
+        const appointmentCounts = doctors.map(
+            doctor => doctor.total_appointments
+        );
+
+        new Chart(document.getElementById("doctorChart"), {
+            type: "bar",
+            data: {
+                labels: doctorNames,
+                datasets: [{
+                    label: "Total Appointments",
+                    data: appointmentCounts
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: "Appointments Per Doctor"
+                    }
+                }
+            }
+        });
+    } catch (error) {
+        console.error("Unable to load doctor analytics:", error);
+    }
+}
+
+loadDoctorSummary();
+</script>
 </body>
 </html>
